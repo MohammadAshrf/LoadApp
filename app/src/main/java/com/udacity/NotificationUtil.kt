@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 
 private val NOTIFICATION_ID = 0
@@ -14,6 +15,11 @@ private val NOTIFICATION_ID = 0
 
 @SuppressLint("UnspecifiedImmutableFlag")
 fun NotificationManager.sendNotification(status: String, fileName:String, applicationContext: Context) {
+
+    if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+        return // notifications are not enabled, return early
+    }
+
     val contentIntent = Intent(applicationContext, DetailActivity::class.java)
     contentIntent.apply {
         putExtra("status",status)
@@ -23,7 +29,7 @@ fun NotificationManager.sendNotification(status: String, fileName:String, applic
         applicationContext,
         NOTIFICATION_ID,
         contentIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
 
     val downloadedFileImage = BitmapFactory.decodeResource(

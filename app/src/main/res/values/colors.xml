@@ -6,4 +6,6 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="animated_rect">#000000</color>
+    <color name="backgroundColorBtn">#B22B00</color>
+
 </resources>
