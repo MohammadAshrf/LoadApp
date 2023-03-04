@@ -25,7 +25,7 @@ class DetailActivity : AppCompatActivity() {
         notificationManager.cancelNotifications()
 
         fab.setOnClickListener {
-            val mainIntent = Intent(this,MainActivity::class.java)
+            val mainIntent = Intent(this, MainActivity::class.java)
             startActivity(mainIntent)
         }
     }

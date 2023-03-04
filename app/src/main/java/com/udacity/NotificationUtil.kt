@@ -10,56 +10,62 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 
-private val NOTIFICATION_ID = 0
-
-
 @SuppressLint("UnspecifiedImmutableFlag")
-fun NotificationManager.sendNotification(status: String, fileName:String, applicationContext: Context) {
-
+internal fun NotificationManager.sendNotification(
+    status: String, fileName: String, applicationContext: Context
+) {
+    // Check if notifications are enabled.
     if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
-        return // notifications are not enabled, return early
+        return // Notifications are not enabled, return early.
     }
 
-    val contentIntent = Intent(applicationContext, DetailActivity::class.java)
-    contentIntent.apply {
-        putExtra("status",status)
-        putExtra("fileName",fileName)
+    // Create an intent to open the detail activity with the status and file name as extras.
+    val contentIntent = Intent(applicationContext, DetailActivity::class.java).apply {
+        putExtra("status", status)
+        putExtra("fileName", fileName)
     }
+
+    // Create a pending intent for the content intent.
     val contentPendingIntent = PendingIntent.getActivity(
         applicationContext,
-        NOTIFICATION_ID,
+        (0..Int.MAX_VALUE).random(), // Use a random request code to avoid collisions with other notifications.
         contentIntent,
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
 
+    // Create a big picture style with the downloaded file image.
     val downloadedFileImage = BitmapFactory.decodeResource(
-        applicationContext.resources,
-        R.drawable.cloud_icon
+        applicationContext.resources, R.drawable.cloud_icon
     )
-    val bigPicStyle = NotificationCompat.BigPictureStyle()
-        .bigPicture(downloadedFileImage)
-        .bigLargeIcon(null)
+    val bigPicStyle =
+        NotificationCompat.BigPictureStyle().bigPicture(downloadedFileImage).bigLargeIcon(null)
 
+    // Create the notification builder with the title, description, icon, style, and action button.
     val builder = NotificationCompat.Builder(
-        applicationContext,
-        applicationContext.getString(R.string.file_notification_channel_id)
-    )
-        .setSmallIcon(R.drawable.ic_assistant_black_24dp)
-        .setContentTitle(applicationContext.getString(R.string.notification_title))
-        .setContentText(applicationContext.getString(R.string.notification_description))
-        .setContentIntent(contentPendingIntent)
-        .setStyle(bigPicStyle)
-        .setLargeIcon(downloadedFileImage)
-        .addAction(
+        applicationContext, applicationContext.getString(R.string.file_notification_channel_id)
+    ).apply {
+        setSmallIcon(R.drawable.ic_assistant_black_24dp)
+        setContentTitle(applicationContext.getString(R.string.notification_title))
+        setContentText(applicationContext.getString(R.string.notification_description))
+        setContentIntent(contentPendingIntent)
+        setStyle(bigPicStyle)
+        setLargeIcon(downloadedFileImage)
+        addAction(
             R.drawable.ic_assistant_black_24dp,
             applicationContext.getString(R.string.explore),
             contentPendingIntent
         )
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
-        .setAutoCancel(true)
-    notify(NOTIFICATION_ID, builder.build())
+        priority = NotificationCompat.PRIORITY_HIGH
+        setAutoCancel(true)
+    }
+
+    // Send the notification with a random ID.
+    notify((0..Int.MAX_VALUE).random(), builder.build())
 }
 
-fun NotificationManager.cancelNotifications() {
+/**
+ * Cancels all notifications from this notification manager.
+ */
+internal fun NotificationManager.cancelNotifications() {
     cancelAll()
 }

@@ -23,15 +23,11 @@ import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
-
 class MainActivity : AppCompatActivity() {
 
-    private var downloadID: Long = 0
-    private var downloadedFile = ""
-
+    private var downloadId: Long = 0
+    private var downloadedFileName = ""
     private lateinit var notificationManager: NotificationManager
-    private lateinit var pendingIntent: PendingIntent
-    private lateinit var action: NotificationCompat.Action
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +38,9 @@ class MainActivity : AppCompatActivity() {
 
         custom_button.setOnClickListener {
             if (repoUrl.isEmpty()) {
-                Toast.makeText(applicationContext, "Select A File To Download", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(
+                    applicationContext, "Please select a file to download", Toast.LENGTH_SHORT
+                ).show()
 
             } else {
                 download()
@@ -56,25 +53,20 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             intent.apply {
-                if (this?.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE && id == downloadID) {
-                    val downloadQuery = DownloadManager.Query().setFilterById(downloadID)
+                if (this?.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE && id == downloadId) {
+                    val downloadQuery = DownloadManager.Query().setFilterById(downloadId)
                     val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
                     val cursor: Cursor = downloadManager.query(downloadQuery)
                     if (cursor.moveToFirst()) {
                         when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
                             DownloadManager.STATUS_FAILED -> {
                                 notificationManager.sendNotification(
-                                    "FAILED", downloadedFile, context!!
+                                    "Download failed", downloadedFileName, context!!
                                 )
                             }
-                            /*DownloadManager.STATUS_RUNNING -> {
-                                notificationManager.sendNotification("RUNNING",downloadedFile,context!!)
-                            }*/
                             DownloadManager.STATUS_SUCCESSFUL -> {
                                 notificationManager.sendNotification(
-                                    "SUCCESS",
-                                    downloadedFile,
-                                    context!!
+                                    "Download completed", downloadedFileName, context!!
                                 )
                             }
                         }
@@ -92,8 +84,7 @@ class MainActivity : AppCompatActivity() {
         custom_button.isEnabled = false
 
         notificationManager = ContextCompat.getSystemService(
-            applicationContext,
-            NotificationManager::class.java
+            applicationContext, NotificationManager::class.java
         ) as NotificationManager
         createChannel(
             getString(R.string.file_notification_channel_id),
@@ -101,16 +92,12 @@ class MainActivity : AppCompatActivity() {
         )
 
         val request =
-            DownloadManager.Request(Uri.parse(URL))
-                .setTitle(getString(R.string.app_name))
-                .setDescription(getString(R.string.app_description))
-                .setRequiresCharging(false)
-                .setAllowedOverMetered(true)
-                .setAllowedOverRoaming(true)
+            DownloadManager.Request(Uri.parse(repoUrl)).setTitle(getString(R.string.app_name))
+                .setDescription(getString(R.string.app_description)).setRequiresCharging(false)
+                .setAllowedOverMetered(true).setAllowedOverRoaming(true)
 
         val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        downloadID =
-            downloadManager.enqueue(request)// enqueue puts the download request in the queue.
+        downloadId = downloadManager.enqueue(request)
     }
 
 
@@ -123,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                     if (isChecked) {
                         custom_button.isEnabled = true
                         repoUrl = "https://github.com/bumptech/glide/archive/master.git"
-                        downloadedFile = getString(R.string.glide_loading_rb)
+                        downloadedFileName = getString(R.string.glide_loading_rb)
                     }
                 }
                 R.id.load_app_rb -> {
@@ -131,14 +118,14 @@ class MainActivity : AppCompatActivity() {
                         custom_button.isEnabled = true
                         repoUrl =
                             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
-                        downloadedFile = getString(R.string.load_app_rb)
+                        downloadedFileName = getString(R.string.load_app_rb)
                     }
                 }
                 R.id.retrofit_rb -> {
                     if (isChecked) {
                         custom_button.isEnabled = true
                         repoUrl = "https://github.com/square/retrofit/archive/master.zip"
-                        downloadedFile = getString(R.string.retrofit_rb)
+                        downloadedFileName = getString(R.string.retrofit_rb)
                     }
                 }
             }
@@ -148,24 +135,21 @@ class MainActivity : AppCompatActivity() {
     private fun createChannel(channelId: String, channelName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_HIGH
+                channelId, channelName, NotificationManager.IMPORTANCE_HIGH
             )
-                .apply {
-                    setShowBadge(false)
-                }
+            notificationChannel.apply {
+                setShowBadge(false)
+                enableLights(true)
+                lightColor = Color.RED
+                enableVibration(true)
+                description = getString(R.string.notification_description)
+            }
 
-            notificationChannel.enableLights(true)
-            notificationChannel.lightColor = Color.RED
-            notificationChannel.enableVibration(true)
-            notificationChannel.description = getString(R.string.notification_description)
             val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(notificationChannel)
+            notificationManager?.createNotificationChannel(notificationChannel)
 
         }
     }
-
 
     companion object {
         private const val URL =
@@ -178,5 +162,4 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         repoUrl = ""
     }
-
 }

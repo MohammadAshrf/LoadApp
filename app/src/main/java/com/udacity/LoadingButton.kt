@@ -1,7 +1,8 @@
 package com.udacity
 
-import android.animation.PropertyValuesHolder
+import android.animation.PropertyValuesHolder.ofFloat
 import android.animation.ValueAnimator
+import android.animation.ValueAnimator.*
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
@@ -13,16 +14,16 @@ import kotlin.properties.Delegates
 class LoadingButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
+    // Initialize variables and objects
     private var widthSize = 0
     private var heightSize = 0
-
     private val valueAnimator = ValueAnimator()
-    private var backColorBtn: Int
+    private var btnBackColor: Int
     private var textColor: Int
     private var textSize: Int
     private var progress: Double = 0.0
-
-    private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { _, _, new ->
+    private var buttonState: ButtonState by Delegates.observable(ButtonState.Completed) { _, _, new ->
+        // Observe changes to button state and update view accordingly
         when (new) {
             ButtonState.Clicked -> invalidate()
             ButtonState.Completed -> {
@@ -36,31 +37,24 @@ class LoadingButton @JvmOverloads constructor(
         }
     }
 
-
+    // Initialize button attributes from XML
     init {
+        // Set default values
         isEnabled = true
-        val attrs = context.theme.obtainStyledAttributes(
-            attrs,
-            R.styleable.LoadingButton,
-            0, 0
-        )
+        btnBackColor = ContextCompat.getColor(context, R.color.colorPrimary)
+        textColor = ContextCompat.getColor(context, R.color.white)
+        textSize = resources.getDimensionPixelSize(R.dimen.default_text_size)
 
-        backColorBtn = attrs.getColor(
-            R.styleable.LoadingButton_BackgroundColorBtn,
-            Color.GRAY
-        )
+        // Read values from XML if provided
+        val attrs = context.theme.obtainStyledAttributes(attrs, R.styleable.LoadingButton, 0, 0)
+        btnBackColor = attrs.getColor(R.styleable.LoadingButton_BackgroundColorBtn, btnBackColor)
+        textColor = attrs.getColor(R.styleable.LoadingButton_TextColorBtn, textColor)
+        textSize = attrs.getInt(R.styleable.LoadingButton_TextSizeBtn, textSize)
 
-        textColor = attrs.getColor(
-            R.styleable.LoadingButton_TextColorBtn,
-            ContextCompat.getColor(context, R.color.white)
-        )
 
-        textSize = attrs.getInt(
-            R.styleable.LoadingButton_TextSizeBtn,
-            16
-        )
     }
 
+    // Initialize Paint objects
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -81,41 +75,36 @@ class LoadingButton @JvmOverloads constructor(
         strokeWidth = 30f
     }
 
-
-    private var loadingCircle = RectF(
-        760f,
-        60f,
-        800f,
-        100f
+    // Initialize RectF object for loading circle
+    private val loadingCircle = RectF(
+        760f, 60f, 800f, 100f
     )
 
+    // Draw the button view
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        paint.color = backColorBtn
+        // Draw the button background
+        paint.color = btnBackColor
         canvas!!.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
 
+        // If button is in Loading state, draw the animated rectangle and circle
         if (buttonState == ButtonState.Loading) {
-
-            //animated button
-            paint.color = Color.BLUE
+            // Draw the animated rectangle
+            paint.color = Color.GRAY
             canvas.drawRect(
-                0f, 0f,
-                (width * (progress / 100)).toFloat(), height.toFloat(), animatedRectPaint
+                0f, 0f, (width * (progress / 100)).toFloat(), height.toFloat(), animatedRectPaint
             )
 
-            //animated circle
-            paint.color = Color.RED
+            // Draw the animated circle
+            paint.color = Color.GREEN
             paint.strokeWidth = 40f
             canvas.drawArc(
-                loadingCircle,
-                0f,
-                (360 * progress / 100).toFloat(),
-                true,
-                animatedCirclePaint
+                loadingCircle, 0f, (360 * progress / 100).toFloat(), true, animatedCirclePaint
             )
         }
 
+        // Draw the button text
         paint.color = textColor
         val btnText =
             if (buttonState == ButtonState.Loading) resources.getString(R.string.button_loading) else resources.getString(
@@ -129,9 +118,7 @@ class LoadingButton @JvmOverloads constructor(
         val minw: Int = paddingLeft + paddingRight + suggestedMinimumWidth
         val w: Int = resolveSizeAndState(minw, widthMeasureSpec, 1)
         val h: Int = resolveSizeAndState(
-            MeasureSpec.getSize(w),
-            heightMeasureSpec,
-            0
+            MeasureSpec.getSize(w), heightMeasureSpec, 0
         )
         widthSize = w
         heightSize = h
@@ -142,14 +129,13 @@ class LoadingButton @JvmOverloads constructor(
         buttonState = state
     }
 
-    @SuppressLint("Recycle")
     private fun animatedProgress() {
-        val valuesRange = PropertyValuesHolder.ofFloat("progress", 0f, 100f)
+        val valuesRange = ofFloat("progress", 0f, 100f)
         valueAnimator.apply {
             setValues(valuesRange)
-            duration = 2000
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
+            duration = 3000
+            repeatCount = INFINITE
+            repeatMode = REVERSE
             addUpdateListener {
                 progress = (it.animatedValue as Float).toDouble()
                 invalidate()
