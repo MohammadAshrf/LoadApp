@@ -1,13 +1,16 @@
 package com.udacity
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 
 
 @SuppressLint("UnspecifiedImmutableFlag")
@@ -59,8 +62,13 @@ internal fun NotificationManager.sendNotification(
         setAutoCancel(true)
     }
 
-    // Send the notification with a random ID.
-    notify((0..Int.MAX_VALUE).random(), builder.build())
+    /// Check if the app has the necessary permissions to display the notification.
+    if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_NOTIFICATION_POLICY)
+        == PackageManager.PERMISSION_GRANTED
+    ) {
+        // Send the notification with a random ID.
+        notify((0..Int.MAX_VALUE).random(), builder.build())
+    }
 }
 
 /**

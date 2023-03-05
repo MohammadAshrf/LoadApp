@@ -49,9 +49,7 @@ class LoadingButton @JvmOverloads constructor(
         val attrs = context.theme.obtainStyledAttributes(attrs, R.styleable.LoadingButton, 0, 0)
         btnBackColor = attrs.getColor(R.styleable.LoadingButton_BackgroundColorBtn, btnBackColor)
         textColor = attrs.getColor(R.styleable.LoadingButton_TextColorBtn, textColor)
-        textSize = attrs.getInt(R.styleable.LoadingButton_TextSizeBtn, textSize)
-
-
+        textSize = attrs.getDimensionPixelSize(R.styleable.LoadingButton_TextSizeBtn, textSize)
     }
 
     // Initialize Paint objects

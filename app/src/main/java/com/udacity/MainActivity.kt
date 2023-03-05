@@ -1,14 +1,15 @@
 package com.udacity
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Color
 import android.net.Uri
@@ -17,6 +18,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -25,10 +27,12 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    private val PERMISSIONS_REQUEST_NOTIFICATIONS = 1
     private var downloadId: Long = 0
     private var downloadedFileName = ""
     private lateinit var notificationManager: NotificationManager
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -46,6 +50,14 @@ class MainActivity : AppCompatActivity() {
                 download()
             }
         }
+        // Check if the permission is granted
+        if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY),
+                PERMISSIONS_REQUEST_NOTIFICATIONS
+            )
+        }
+
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -128,6 +140,27 @@ class MainActivity : AppCompatActivity() {
                         downloadedFileName = getString(R.string.retrofit_rb)
                     }
                 }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_NOTIFICATIONS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+                download()
+            } else {
+                // Permission denied
+                Toast.makeText(
+                    this, "Permission required to show the notification",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
             }
         }
     }

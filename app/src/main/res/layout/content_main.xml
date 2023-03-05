@@ -77,7 +77,7 @@
         app:layout_constraintHorizontal_bias="0.6"
         app:BackgroundColorBtn="@color/backgroundColorBtn"
         app:TextColorBtn="@color/white"
-        app:TextSizeBtn="20"
+        app:TextSizeBtn="@dimen/default_text_size"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />

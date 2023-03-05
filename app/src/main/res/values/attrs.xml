@@ -4,6 +4,6 @@
         <!--   TODO: create custom attributes for the view-->
         <attr name="TextColorBtn" format="color" />
         <attr name="BackgroundColorBtn" format="color" />
-        <attr name="TextSizeBtn" format="integer" />
+        <attr name="TextSizeBtn" format="dimension"/>
     </declare-styleable>
 </resources>
